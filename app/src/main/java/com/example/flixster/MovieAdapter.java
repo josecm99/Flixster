@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.flixster.models.Config;
@@ -75,7 +74,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
             imageUrl = config.getImageUrl(config.getPosterSize(), movie.getPosterPath() );
         }
         else{
-            Toast.makeText(context, "Phone sideways", Toast.LENGTH_LONG).show();
             imageUrl = config.getImageUrl(config.getBackdropSize(), movie.getBackdropPath() );
         }
 
