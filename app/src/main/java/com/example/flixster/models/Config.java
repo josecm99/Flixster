@@ -12,6 +12,9 @@ public class Config {
     //The Poster size to use when fetching images
     String posterSize;
 
+    //The backdrop size used when the phone is in landscape mode
+    String backdropSize;
+
     public Config(JSONObject object) throws JSONException {
 
         //Using this to go down to the level that we want to access secure_bse_url from.
@@ -25,6 +28,12 @@ public class Config {
 
         //Now, use the object at index 3 OR default of w342
         posterSize = posterSizeOptions.optString(3, "w342");
+
+        //Similarly, get the backdrop size
+        JSONArray backdropSizeOptions = images.getJSONArray("backdrop_sizes");
+
+        //Now, use the object at index 3 OR default of w342
+        backdropSize = backdropSizeOptions.optString(1, "w780");
 
     }// end constructor
 
@@ -44,6 +53,8 @@ public class Config {
     public String getPosterSize() {
         return posterSize;
     } // end getPosterSize
+
+    public String getBackdropSize() { return backdropSize; } // end getBackdropSize
 
 
 }// end class Config

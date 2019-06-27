@@ -10,6 +10,7 @@ public class Movie {
     private String title;
     private String overview;
     private String posterPath; //Not the FULL Poster URL
+    private String backdropPath; // NOt the FULL Backdrop URL
 
 
     //Initialize from JSON Data
@@ -20,6 +21,8 @@ public class Movie {
         overview = object.getString("overview");
 
         posterPath = object.getString("poster_path");
+
+        backdropPath = object.getString("backdrop_path");
     }// end constructor
 
     public String getTitle() {
@@ -32,5 +35,9 @@ public class Movie {
 
     public String getPosterPath() {
         return posterPath;
+    }
+
+    public String getBackdropPath() {
+        return backdropPath;
     }
 }// end class Movie
