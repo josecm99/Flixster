@@ -2,9 +2,13 @@ package com.example.flixster;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.flixster.models.Config;
+import com.example.flixster.models.Movie;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -12,6 +16,8 @@ import com.loopj.android.http.RequestParams;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -33,13 +39,18 @@ public class MainActivity extends AppCompatActivity {
     //Client we'll be using to communicate with the API
     AsyncHttpClient client;
 
-        //TWO OF THE THREE PARTS OF OUR IMAGE URLS BELOW
+    //The list of currently playing movies
+    ArrayList<Movie> movieList;
 
-    //Base Url for loading images
-    String imageBaseUrl;
+    //The RecyclerView
+    RecyclerView rvMovies;
 
-    //The Poster size to use when fetching images
-    String posterSize;
+    //The adapter wired to the RecyclerView
+    MovieAdapter adapter;
+
+    //Image Configuration
+    Config config;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,11 +60,81 @@ public class MainActivity extends AppCompatActivity {
         //Setting up the client
         client = new AsyncHttpClient();
 
+        //Initialize the movies list
+        movieList = new ArrayList<>();
+
+        //Initialize the adapter after the movieList has been created
+        //Movies array cannot be reinitialized after this point
+        adapter = new MovieAdapter(movieList);
+
+        //Resolve the RecyclerView and connect BOTH the Layout Manager AND Adapter
+        rvMovies = (RecyclerView) findViewById(R.id.rvMovies);
+        rvMovies.setLayoutManager(new LinearLayoutManager(this) );
+        rvMovies.setAdapter(adapter);
+
         //Get the configuration from JSON on app creation
         getConfiguration();
 
 
     } //end onCreate
+
+
+
+    //Get the list of currently playing movies from the API
+    private void getCurrentlyPlayingMovies(){
+        //Create the URL
+        String url = API_BASE_URL + "/movie/now_playing";
+
+        //Set the request parameters (USING RequestParams Object)
+        RequestParams nowPlayingParams = new RequestParams();
+
+        //API Key always required
+        nowPlayingParams.put(API_KEY_PARAM, getString(R.string.api_key) );
+
+        //Now execute the GET request
+        client.get(url, nowPlayingParams, new JsonHttpResponseHandler() {
+
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+
+                try {
+                    //Load the results into movieList
+                    JSONArray results = response.getJSONArray("results");
+
+                    //Iterate through results and create Movie objects
+                    for (int i = 0; i < results.length(); i++){
+
+                        //Get the JSON Object
+                        Movie movie = new Movie(results.getJSONObject(i) );
+
+                        //Add this movie to our movieList
+                        movieList.add(movie);
+                        //Notify the adapter that the data set has CHANGED
+                        adapter.notifyItemInserted(movieList.size() - 1);
+                    } // end for
+
+                    Log.i(MAIN_ACTIVITY_TAG, String.format("Loaded %s movies", results.length() ) );
+
+
+                } catch (JSONException e) {
+                    logError("Failed to parse now playing movies", e, true);
+                }
+
+
+            }//end onSuccess
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+
+                logError("Failed to get data from now_playing endpoint.", throwable, true);
+
+            }//end onFailure
+        });
+
+
+    } // end getCurrently PlayingMovies
+
 
 
     //Get the configuration from the API
@@ -76,18 +157,16 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
 
                 try {
+                    config = new Config(response);
 
-                    //Using this to go down to the level that we want to access secure_bse_url from.
-                    JSONObject images = response.getJSONObject("images");
+                    Log.i(MAIN_ACTIVITY_TAG, String.format("Loaded configuration with baseImageURL %s and posterSize %s",
+                            config.getImageBaseUrl(), config.getPosterSize() ) );
 
-                    //get the image base URL
-                    imageBaseUrl = images.getString("secure_base_url");
+                    //Now pass the config to the adapter
+                    adapter.setConfig(config);
 
-                    //Similarly, get the poster size
-                    JSONArray posterSizeOptions = images.getJSONArray("poster_sizes");
-
-                    //Now, use the object at index 3 OR default of w342
-                    posterSize = posterSizeOptions.optString(3, "w342");
+                    //Get the movie data into the movieList
+                    getCurrentlyPlayingMovies();
 
                 } catch (JSONException e) {
                     logError("Failed parsing configuration", e, true);
