@@ -3,7 +3,9 @@ package com.example.flixster.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.parceler.Parcel;
 
+@Parcel
 public class Config {
 
     //Base Url for loading images
@@ -14,6 +16,12 @@ public class Config {
 
     //The backdrop size used when the phone is in landscape mode
     String backdropSize;
+
+
+    public Config(){
+
+    }// end default constructor
+
 
     public Config(JSONObject object) throws JSONException {
 

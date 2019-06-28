@@ -3,4 +3,9 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+
+    <color name="colorGoodMovie">#29FFB0</color>
+    <color name="colorOkMovie">#FFF717</color>
+    <color name="colorBadMovie">#FF0000</color>
+    <color name="colorGray">#C0C0C0</color>
 </resources>

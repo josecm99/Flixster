@@ -1,6 +1,7 @@
 package com.example.flixster;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -13,6 +14,8 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.flixster.models.Config;
 import com.example.flixster.models.Movie;
+
+import org.parceler.Parcels;
 
 import java.util.ArrayList;
 
@@ -57,7 +60,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
 
         //Get the movie data at the specified position
-        Movie movie = movieList.get(i);
+            //Made final so that it can be accessed inside of the onClickListener
+        final Movie movie = movieList.get(i);
 
         //Update the information on the activity
         viewHolder.tvTitle.setText(movie.getTitle() );
@@ -65,6 +69,18 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
 
         //Determine the current orientation to see if we need to use the poster or the backdrop
         boolean isPortrait = context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
+
+        double movieRating = movie.getMovieRating();
+
+        if (movieRating > 7.50){
+            viewHolder.itemView.setBackgroundColor(context.getResources().getColor(R.color.colorGoodMovie) );
+        }else if (movieRating > 5.00){
+            viewHolder.itemView.setBackgroundColor(context.getResources().getColor(R.color.colorOkMovie) );
+        }else{
+            viewHolder.itemView.setBackgroundColor(context.getResources().getColor(R.color.colorBadMovie)  );
+        }
+
+
 
         //Build URL for Poster Image
         String imageUrl = null;
@@ -77,7 +93,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
             imageUrl = config.getImageUrl(config.getBackdropSize(), movie.getBackdropPath() );
         }
 
-        //get the correct placeholder and imageview for the current orientation
+        //get the correct placeholder and imageView for the current orientation
         int placeholderID = isPortrait ? R.drawable.flicks_movie_placeholder : R.drawable.flicks_backdrop_placeholder;
         ImageView imageView = isPortrait ? viewHolder.ivPosterImage : viewHolder.ivBackdropImage;
 
@@ -114,7 +130,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
 
 
     //Now create the ViewHolder as a static inner class
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         //Track view objects
         ImageView ivPosterImage;
@@ -133,6 +149,36 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
             tvOverview = (TextView) itemView.findViewById(R.id.tvOverview);
 
+            itemView.setOnClickListener(this);
+
+
+        }
+
+        @Override
+        public void onClick(View v) {
+
+
+            int position = getAdapterPosition();
+
+            //If the position exists in the view, continue
+            if (position != RecyclerView.NO_POSITION){
+                Movie movie = movieList.get(position);
+
+                //Create an intent to send the correct information over to the new Activity.
+                Intent seeMovieDetails = new Intent(context, MovieDetailsActivity.class);
+
+                //Use the Parceler to pass the movie through in the Intent
+                seeMovieDetails.putExtra(Movie.class.getSimpleName(), Parcels.wrap(movie) );
+
+                //Also try to pass in Config using Parcels to try and have the image displayed
+                seeMovieDetails.putExtra(Config.class.getSimpleName(), Parcels.wrap(config) );
+
+
+                //Finally, show the new Activity
+                context.startActivity(seeMovieDetails);
+
+
+            }// end if
 
         }
     } // end class ViewHolder
